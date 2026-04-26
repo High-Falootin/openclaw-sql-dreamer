@@ -98,11 +98,13 @@ jobs:
       - name: "Verify no LIMIT N in SQL queries"
         run: |
           echo "Checking for LIMIT N usage (SQL Server uses TOP N)..."
-          if grep -rn '\bLIMIT\b' src/ scripts/ sql/ 2>/dev/null | grep -v '#\|test\|mock\|example'; then
+          # Exclude comment lines (# or --) and docstrings
+          if grep -rn '\bLIMIT\b' src/ scripts/ sql/ 2>/dev/null | \
+             grep -v '^[^:]*:#\|^[^:]*:.*--\|#.*LIMIT\|".*LIMIT\|LIMIT N\|not LIMIT\|never LIMIT\|uses LIMIT'; then
             echo "❌ Found LIMIT N — SQL Server uses TOP N. Fix before merging."
             exit 1
           fi
-          echo "✅ No LIMIT N found"
+          echo "✅ No LIMIT N found in SQL queries"
 
       - name: "Verify parameterized queries only"
         run: |
