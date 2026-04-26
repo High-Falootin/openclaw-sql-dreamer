@@ -78,6 +78,9 @@ git clone https://github.com/High-Falootin/openclaw-SQL-dreamer.git
 cd openclaw-SQL-dreamer
 
 # 2. Install dependencies
+# Note: pyodbc and PyYAML ship with OpenClaw's default environment.
+# If you're running inside OpenClaw, skip this step — they're already installed.
+# For standalone / non-OpenClaw installs:
 pip install -r requirements.txt
 
 # 3. Copy and fill in config
