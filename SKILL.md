@@ -81,3 +81,17 @@ Use environment variables for all secrets:
 export SQL_PASSWORD="..."
 export CONFLUENCE_API_TOKEN="..."
 ```
+
+## Updated Crontab (after HFTC-28)
+
+```cron
+# Pre-dream SQL feed (30 min before dream cycle)
+0 7 * * * python /path/to/scripts/pre_dream_sql_feed.py
+
+# Post-dream archiver + phase signal reconciler (1 hr after dream)
+0 8 * * * python /path/to/scripts/post_dream_archiver.py
+5 8 * * * python /path/to/scripts/phase_signal_reconciler.py
+
+# Confluence publisher (optional, 90 min after dream)
+30 8 * * * python /path/to/scripts/confluence_dream_publisher.py
+```
