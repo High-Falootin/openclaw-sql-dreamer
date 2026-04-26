@@ -188,11 +188,15 @@ class SQLDreamerConnector:
     def write_dream_corpus_batch(self, cycle_date: str, memories: list[dict]) -> None:
         """
         Record the set of memories that were fed to the dreamer for a given cycle.
+        Clears any existing corpus entries for this date first (idempotent).
 
         Args:
             cycle_date: ISO date string (YYYY-MM-DD)
             memories: List of memory dicts from get_corpus_memories()
         """
+        # OB-350: Clear existing entries for this date before inserting (idempotent)
+        self.execute("DELETE FROM dreams.DreamCorpus WHERE cycle_date = ?", (cycle_date,))
+
         sql = """
             INSERT INTO dreams.DreamCorpus
                 (cycle_date, memory_id, category, key_name, importance, ingested_at)
