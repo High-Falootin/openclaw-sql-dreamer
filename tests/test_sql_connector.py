@@ -52,6 +52,9 @@ def test_get_corpus_memories_uses_parameterized_query(connector):
         # Must not use f-strings or format — check params tuple has values
         assert len(params) == 2
         assert params[0] == 7
+        # pyodbc uses qmark (?) not %s
+        assert "?" in sql
+        assert "%s" not in sql
         # Must use TOP N not LIMIT
         assert "TOP" in sql.upper()
         assert "LIMIT" not in sql.upper()
@@ -85,7 +88,9 @@ def test_write_dream_light_uses_executemany(connector):
         connector.write_dream_light("2026-04-26", entries)
         assert mock_em.called
         sql = mock_em.call_args[0][0]
-        assert "%s" in sql
+        # pyodbc qmark style: ? not %s
+        assert "?" in sql
+        assert "%s" not in sql
         assert "f'" not in sql  # No f-strings
 
 

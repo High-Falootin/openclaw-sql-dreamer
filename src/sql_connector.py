@@ -28,7 +28,7 @@ class SQLDreamerConnector:
     Standalone SQL connector for openclaw-sql-dreamer.
 
     Supports SQL Server via pyodbc. Config-driven — no hardcoded paths or credentials.
-    All queries use %s parameterized placeholders (pyodbc style).
+    All queries use ? parameterized placeholders (pyodbc qmark paramstyle) (pyodbc qmark style — uses ? not %s).
     SQL Server: always TOP N, never LIMIT N.
     """
 
@@ -125,7 +125,7 @@ class SQLDreamerConnector:
     def query(self, sql: str, params: tuple = ()) -> list[dict]:
         """
         Execute a SELECT query, return list of dicts.
-        Always use %s placeholders — never f-strings or format().
+        Always use ? placeholders (pyodbc qmark style) — never f-strings or format().
         SQL Server: use TOP N, never LIMIT N.
         """
         cur = self._cursor()
@@ -136,7 +136,7 @@ class SQLDreamerConnector:
     def execute(self, sql: str, params: tuple = ()) -> int:
         """
         Execute INSERT/UPDATE/DELETE. Returns rowcount.
-        Always use %s placeholders.
+        Always use ? placeholders (pyodbc qmark style).
         """
         cur = self._cursor()
         cur.execute(sql, params)
@@ -174,8 +174,8 @@ class SQLDreamerConnector:
             SELECT TOP 500
                 id, category, key_name, content, importance, created_at
             FROM memory.Memories
-            WHERE importance >= %s
-              AND created_at >= %s
+            WHERE importance >= ?
+              AND created_at >= ?
               AND category NOT IN ('session_memory_archive', 'general_work', 'general_agent_work')
             ORDER BY importance DESC, created_at DESC
         """
@@ -196,7 +196,7 @@ class SQLDreamerConnector:
         sql = """
             INSERT INTO dreams.DreamCorpus
                 (cycle_date, memory_id, category, key_name, importance, ingested_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?)
         """
         now = datetime.now(timezone.utc)
         rows = [
@@ -221,7 +221,7 @@ class SQLDreamerConnector:
             INSERT INTO dreams.DreamLight
                 (cycle_date, entry_key, snippet, confidence, evidence_path,
                  recall_count, status, ingested_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
         now = datetime.now(timezone.utc)
         rows = [
@@ -258,7 +258,7 @@ class SQLDreamerConnector:
             sql_themes = """
                 INSERT INTO dreams.DreamREM
                     (cycle_date, entry_type, theme, frequency, confidence, evidence, ingested_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """
             rows = [
                 (cycle_date, "theme", t.get("theme", ""), t.get("frequency", 0),
@@ -271,7 +271,7 @@ class SQLDreamerConnector:
             sql_truths = """
                 INSERT INTO dreams.DreamREM
                     (cycle_date, entry_type, theme, ingested_at)
-                VALUES (%s, %s, %s, %s)
+                VALUES (?, ?, ?, ?)
             """
             rows = [(cycle_date, "lasting_truth", truth[:2000], now) for truth in lasting_truths]
             self.executemany(sql_truths, rows)
@@ -292,7 +292,7 @@ class SQLDreamerConnector:
             INSERT INTO dreams.DreamDeep
                 (cycle_date, candidate_key, snippet, score, recall_count,
                  unique_queries, promoted, ingested_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
         now = datetime.now(timezone.utc)
         rows = [
@@ -317,7 +317,7 @@ class SQLDreamerConnector:
     def get_phase_signals(self, limit: int = 1000) -> list[dict]:
         """Return phase signal entries (SQL equivalent of phase-signals.json)."""
         sql = """
-            SELECT TOP %s
+            SELECT TOP ?
                 signal_key, light_hits, rem_hits,
                 last_light_at, last_rem_at, updated_at
             FROM dreams.PhaseSignals
@@ -331,22 +331,22 @@ class SQLDreamerConnector:
         if phase == "light":
             sql = """
                 MERGE dreams.PhaseSignals AS target
-                USING (SELECT %s AS signal_key) AS source ON target.signal_key = source.signal_key
+                USING (SELECT ? AS signal_key) AS source ON target.signal_key = source.signal_key
                 WHEN MATCHED THEN
-                    UPDATE SET light_hits = light_hits + 1, last_light_at = %s, updated_at = %s
+                    UPDATE SET light_hits = light_hits + 1, last_light_at = ?, updated_at = ?
                 WHEN NOT MATCHED THEN
                     INSERT (signal_key, light_hits, rem_hits, last_light_at, updated_at)
-                    VALUES (%s, 1, 0, %s, %s);
+                    VALUES (?, 1, 0, ?, ?);
             """
             self.execute(sql, (key, now, now, key, now, now))
         else:
             sql = """
                 MERGE dreams.PhaseSignals AS target
-                USING (SELECT %s AS signal_key) AS source ON target.signal_key = source.signal_key
+                USING (SELECT ? AS signal_key) AS source ON target.signal_key = source.signal_key
                 WHEN MATCHED THEN
-                    UPDATE SET rem_hits = rem_hits + 1, last_rem_at = %s, updated_at = %s
+                    UPDATE SET rem_hits = rem_hits + 1, last_rem_at = ?, updated_at = ?
                 WHEN NOT MATCHED THEN
                     INSERT (signal_key, light_hits, rem_hits, last_rem_at, updated_at)
-                    VALUES (%s, 0, 1, %s, %s);
+                    VALUES (?, 0, 1, ?, ?);
             """
             self.execute(sql, (key, now, now, key, now, now))

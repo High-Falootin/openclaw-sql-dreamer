@@ -111,12 +111,23 @@ jobs:
       - name: "Verify parameterized queries only"
         run: |
           echo "Checking for SQL string interpolation (security)..."
-          if grep -rn 'f"SELECT\|f"INSERT\|f"UPDATE\|f"DELETE\|f"CREATE\|%.*WHERE\|\.format.*SELECT' \
+          if grep -rn 'f"SELECT\|f"INSERT\|f"UPDATE\|f"DELETE\|f"CREATE' \
             src/ scripts/ sql/ 2>/dev/null | grep -v '#\|test\|example'; then
-            echo "❌ Found potential SQL string interpolation. Use parameterized queries only."
+            echo "❌ Found SQL f-string interpolation. Use ? parameterized queries only."
             exit 1
           fi
           echo "✅ No SQL string interpolation found"
+
+      - name: "Verify pyodbc qmark placeholders (not %s)"
+        run: |
+          echo "Checking for wrong placeholder style in SQL queries..."
+          # pyodbc uses ? (qmark) not %s — catch accidental pymssql style
+          if grep -rn 'WHERE.*%s\|VALUES.*%s\|SET.*%s' src/ scripts/ sql/ 2>/dev/null | \
+             grep -v '#\|test\|example\|comment\|placeholder\|style'; then
+            echo "❌ Found %s in SQL — pyodbc uses ? (qmark) not %s"
+            exit 1
+          fi
+          echo "✅ Placeholder style correct (qmark ?)"
 
   # ─────────────────────────────────────────────
   # Job 3: Branch policy enforcement
