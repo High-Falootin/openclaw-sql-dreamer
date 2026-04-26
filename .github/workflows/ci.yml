@@ -22,11 +22,13 @@ jobs:
         run: |
           echo "Scanning for secrets in changed files..."
           # Patterns that must never appear in commits
+          # Patterns stored split so the scanner doesn't match its own source
+          GH_PAT="ghp_"
           PATTERNS=(
-            'password\s*=\s*["\x27][^"\x27 ]{4}'
-            'api_token\s*=\s*["\x27][^"\x27 ]{4}'
-            'ghp_[a-zA-Z0-9]{36}'
-            'Bearer [a-zA-Z0-9+/]{20}'
+            'password[[:space:]]*=[[:space:]]*["'\'''][^"'\'\'' ]{4}'
+            'api_token[[:space:]]*=[[:space:]]*["'\'''][^"'\'\'' ]{4}'
+            "${GH_PAT}[a-zA-Z0-9]{36}"
+            'Bearer [a-zA-Z0-9+/]{20,}'
             'PRIVATE KEY'
             'BEGIN RSA'
           )
