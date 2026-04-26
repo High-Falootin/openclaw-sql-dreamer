@@ -194,6 +194,64 @@ cython_debug/
 #   Learn more at https://abstra.io/docs
 .abstra/
 
+# ============================================================
+# SECURITY: Credentials and secrets — PUBLIC REPO, never commit
+# ============================================================
+.env
+*.env
+.env.*
+!.env.example
+secrets/
+credentials/
+config/local.*
+config/local/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*_secret*
+*_token*
+*_credential*
+connection_strings*
+
+# ============================================================
+# OpenClaw runtime files — local only, never commit
+# ============================================================
+.openclaw/
+.openclaw-private/
+.openclaw-repair/
+
+# ============================================================
+# SQL / database local artifacts
+# ============================================================
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.bak
+dump*.sql
+restore*.sql
+
+# ============================================================
+# Node / package artifacts
+# ============================================================
+node_modules/
+dist/
+.npm/
+
+# ============================================================
+# Local config overrides (use config/example.yml as template)
+# ============================================================
+config/config.yml
+config/config.yaml
+config/config.json
+config/local.yml
+config/local.yaml
+config/local.json
+
 # Visual Studio Code
 #   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
