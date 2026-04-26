@@ -30,7 +30,7 @@ MIGRATIONS = [
         CREATE TABLE dreams.DreamCorpus (
             id            INT IDENTITY(1,1) PRIMARY KEY,
             cycle_date    DATE NOT NULL,
-            memory_id     INT NULL,
+            memory_id     NVARCHAR(36) NULL,  -- UUID from memory.Memories.id (uniqueidentifier)
             category      NVARCHAR(100) NULL,
             key_name      NVARCHAR(500) NULL,
             importance    INT NULL,
