@@ -57,7 +57,9 @@ def test_get_corpus_memories_uses_parameterized_query(connector):
         assert "LIMIT" not in sql.upper()
 
 
-def test_from_config_reads_yml(tmp_path):
+def test_from_config_reads_yml(tmp_path, monkeypatch):
+    # Clear any CI env override so we test actual config parsing
+    monkeypatch.delenv("SQL_CONNECTION_STRING", raising=False)
     config_file = tmp_path / "config.yml"
     config_file.write_text(MOCK_CONFIG)
     with patch("pyodbc.connect") as mock_connect:
