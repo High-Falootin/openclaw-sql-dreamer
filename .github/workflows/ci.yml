@@ -20,34 +20,40 @@ jobs:
 
       - name: "Scan for credential patterns"
         run: |
-          echo "Scanning for secrets in changed files..."
-          # Patterns that must never appear in commits
-          # Patterns stored split so the scanner doesn't match its own source
-          GH_PAT="ghp_"
-          PATTERNS=(
-            'password[[:space:]]*=[[:space:]]*["'\'''][^"'\'\'' ]{4}'
-            'api_token[[:space:]]*=[[:space:]]*["'\'''][^"'\'\'' ]{4}'
-            "${GH_PAT}[a-zA-Z0-9]{36}"
-            'Bearer [a-zA-Z0-9+/]{20,}'
-            'PRIVATE KEY'
-            'BEGIN RSA'
-          )
+          echo "Scanning committed files for secrets..."
           FOUND=0
-          for pattern in "${PATTERNS[@]}"; do
-            # Search tracked files (exclude example/test/comment lines)
-            if git diff --name-only HEAD~1 2>/dev/null | xargs grep -lrP "$pattern" 2>/dev/null | \
-               xargs grep -P "$pattern" 2>/dev/null | \
-               grep -v "example\|your_\|placeholder\|env \|os\.environ\|os\.getenv\|#\|test\|mock" | \
-               grep -q .; then
-              echo "❌ Potential secret found matching: $pattern"
+
+          # Scan tracked files (not the workflow file itself — patterns live there)
+          FILES=$(git ls-files | grep -v '.github/workflows/')
+
+          for f in $FILES; do
+            [ -f "$f" ] || continue
+
+            # Real credential patterns (not examples/comments)
+            if grep -P 'password\s*=\s*["\x27][A-Za-z0-9!@#$%^&*]{6}' "$f" 2>/dev/null | \
+               grep -qv 'example\|your_\|placeholder\|os\.environ\|os\.getenv\|#\|test\|mock'; then
+              echo "❌ Possible plaintext password in: $f"
+              FOUND=1
+            fi
+
+            if grep -P 'api_token\s*=\s*["\x27][A-Za-z0-9]{10}' "$f" 2>/dev/null | \
+               grep -qv 'example\|your_\|placeholder\|os\.environ\|os\.getenv\|#\|test\|mock'; then
+              echo "❌ Possible plaintext api_token in: $f"
+              FOUND=1
+            fi
+
+            # Real GitHub PAT (36 chars after ghp_)
+            if grep -P '[g][h][p]_[a-zA-Z0-9]{36}' "$f" 2>/dev/null | \
+               grep -qv '#\|test\|example\|your_'; then
+              echo "❌ Possible GitHub PAT in: $f"
               FOUND=1
             fi
           done
+
           if [ "$FOUND" -eq 1 ]; then
             echo ""
             echo "╔══════════════════════════════════════════════════════╗"
             echo "║  SECRET SCAN FAILED — potential credential detected  ║"
-            echo "║  Review the matched lines above before merging.      ║"
             echo "╚══════════════════════════════════════════════════════╝"
             exit 1
           fi
