@@ -94,6 +94,40 @@ jobs:
           npm install -g @clawhub/cli 2>/dev/null || npm install -g clawhub-cli
           clawhub --version
 
+      - name: "Validate skill metadata"
+        run: |
+          echo "Validating openclaw.skill.json..."
+          
+          # Check file exists
+          if [ ! -f "openclaw.skill.json" ]; then
+            echo "❌ openclaw.skill.json not found"
+            exit 1
+          fi
+          
+          # Validate JSON syntax
+          if ! python3 -m json.tool openclaw.skill.json > /dev/null 2>&1; then
+            echo "❌ openclaw.skill.json is not valid JSON"
+            exit 1
+          fi
+          
+          echo "✅ JSON syntax valid"
+          
+          # Check required fields
+          python3 << 'PYTHON_SCRIPT'
+import json
+with open('openclaw.skill.json', 'r') as f:
+    data = json.load(f)
+
+required = ['id', 'name', 'version', 'description', 'license']
+missing = [field for field in required if field not in data]
+
+if missing:
+    print(f"❌ Missing required fields: {', '.join(missing)}")
+    exit(1)
+
+print(f"✅ Skill metadata valid: {data['name']} v{data['version']}")
+PYTHON_SCRIPT
+
       - name: "Authenticate with clawhub.ai"
         run: |
           echo "Configuring clawhub authentication..."
@@ -115,12 +149,24 @@ jobs:
           echo "Publishing to clawhub.ai..."
           # Navigate to skill directory and publish
           cd . # already at root where skill files are
-          clawhub publish --token "$CLAWHUB_TOKEN" 2>&1 | tee /tmp/publish.log
           
-          if grep -qi "success\|published" /tmp/publish.log; then
-            echo "✅ Published successfully"
+          # Run clawhub publish and capture both exit code and output
+          if clawhub publish --token "$CLAWHUB_TOKEN" 2>&1 | tee /tmp/publish.log; then
+            PUBLISH_EXIT_CODE=$?
+            echo "✅ clawhub publish completed successfully (exit code: $PUBLISH_EXIT_CODE)"
           else
-            echo "⚠️ Check logs above for publication status"
+            PUBLISH_EXIT_CODE=$?
+            echo "❌ clawhub publish failed (exit code: $PUBLISH_EXIT_CODE)"
+            echo "Logs:"
+            cat /tmp/publish.log
+            exit 1
+          fi
+          
+          # Secondary verification: check output for success indicators
+          if grep -qi "success\|published\|uploaded" /tmp/publish.log; then
+            echo "✅ Output contains success indicators"
+          else
+            echo "⚠️ Output did not contain success indicators (may still have succeeded)"
           fi
 
       - name: "Create GitHub Release"
