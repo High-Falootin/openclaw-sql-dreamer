@@ -57,17 +57,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
 
       - name: "Install dependencies"
         run: |
           pip install --upgrade pip
           pip install pytest pytest-cov pyyaml
-          pip install pyodbc 2>/dev/null || echo "pyodbc unavailable, using mocks"
+          pip install -r requirements.txt || true
 
       - name: "Run tests (verify passing)"
         run: |
-          pytest tests/ -v --tb=short --cov --cov-fail-under=45
+          pytest tests/ -v --tb=short \
+            --cov=src --cov=scripts --cov=sql \
+            --cov-fail-under=45 \
+            --cov-config=.coveragerc
         env:
           SQL_CONNECTION_STRING: "mock"
 
@@ -90,9 +92,9 @@ jobs:
 
       - name: "Install clawhub CLI"
         run: |
-          echo "Installing clawhub CLI..."
-          npm install -g @clawhub/cli 2>/dev/null || npm install -g clawhub-cli
-          clawhub --version
+          echo "Verifying npx + clawhub CLI access..."
+          npx clawhub@latest --version
+          echo "✅ clawhub CLI available via npx"
 
       - name: "Validate skill metadata"
         run: |
@@ -147,7 +149,7 @@ jobs:
           cd . # already at root where skill files are
           
           # Run clawhub publish and capture both exit code and output
-          if clawhub publish --token "$CLAWHUB_TOKEN" 2>&1 | tee /tmp/publish.log; then
+          if npx clawhub@latest publish --token "$CLAWHUB_TOKEN" 2>&1 | tee /tmp/publish.log; then then
             PUBLISH_EXIT_CODE=$?
             echo "✅ clawhub publish completed successfully (exit code: $PUBLISH_EXIT_CODE)"
           else
