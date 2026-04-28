@@ -97,9 +97,13 @@ jobs:
           pytest tests/ -v --tb=short \
             --cov=src --cov=scripts --cov=sql \
             --cov-report=term-missing \
-            --cov-fail-under=45
-        # Coverage baseline: 45% for Phase 1 (conf publisher + migrate.py need live DB/API).
-        # Target: 70% when HFTC-32 integration mocks are complete.
+            --cov-fail-under=45 \
+            --cov-config=.coveragerc
+        # Coverage baseline: 45% for Phase 1.
+        # Omitting scripts that require live DB/API (see .coveragerc):
+        #   confluence_dream_publisher.py — needs live Confluence API
+        #   light_sleep_synthesizer.py   — DB-dependent (integration tests skipped in CI)
+        #   sql/migrate.py               — DDL runner, needs live DB
         env:
           SQL_CONNECTION_STRING: "mock"  # Tests use mocks, not live DB
 
