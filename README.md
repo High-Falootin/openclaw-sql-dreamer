@@ -22,65 +22,79 @@ The OpenClaw dreamer still runs exactly as designed. This skill is a wrapper aro
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────┐
-                    │         SQL Database              │
-                    │   memory.Memories (importance)    │
-                    │   dreams.DreamCorpus              │
-                    │   dreams.DreamLight               │
-                    │   dreams.DreamREM                 │
-                    │   dreams.DreamDeep                │
-                    └────────┬─────────────┬────────────┘
-                             │             │
-                    [3:00 AM] │             │ [4:00 AM]
-                    pre_dream │             │ post_dream
-                    sql_feed  │             │ archiver
-                             ▼             │
-                    memory/YYYY-MM-DD.md   │
-                    (clean, curated)        │
-                             │             │
-                    [3:30 AM]│             │
-                    ┌────────▼─────────┐   │
-                    │  OpenClaw native │   │
-                    │  dream cycle     │   │
-                    │  (unchanged)     │   │
-                    └────────┬─────────┘   │
-                             │             │
-                    memory/dreaming/        │
-                    ├── light/YYYY-MM-DD.md │
-                    ├── rem/YYYY-MM-DD.md   │
-                    └── deep/YYYY-MM-DD.md  │
-                             └─────────────┘
-                                           │
-                                  [4:30 AM]│ (optional)
-                                  confluence_publisher
-                                           │
-                                           ▼
-                                  Confluence Memory Palace
+                ┌─────────────────────────────────┐
+                │         SQL Database              │
+                │   memory.Memories (importance)    │
+                │   dreams.DreamCorpus              │
+                │   dreams.DreamLight               │
+                │   dreams.DreamREM                 │
+                │   dreams.DreamDeep                │
+                └────────┬─────────────┬────────────┘
+                         │             │
+                [3:00 AM]│             │[4:00 AM]
+                pre_dream│             │post_dream
+                sql_feed │             │archiver
+                         ▼             │
+                memory/YYYY-MM-DD.md   │
+                (clean, curated)        │
+                         │             │
+                [3:30 AM]│             │
+                ┌────────▼─────────┐   │
+                │  OpenClaw native │   │
+                │  dream cycle     │   │
+                │  (unchanged)     │   │
+                └────────┬─────────┘   │
+                         │             │
+                memory/dreaming/        │
+                ├── light/YYYY-MM-DD.md │
+                ├── rem/YYYY-MM-DD.md   │
+                └── deep/YYYY-MM-DD.md  │
+                         └─────────────┘
+                                       │
+                              [4:30 AM]│ (optional)
+                              confluence_publisher
+                                       │
+                                       ▼
+                              Confluence Memory Palace
 ```
 
 ---
 
 ## Prerequisites
 
-- OpenClaw installed and configured with `memory-core` plugin
-- SQL Server (or compatible) with pyodbc driver
-- Python 3.10+
-- `pyodbc` or `pymssql` installed
+- **OpenClaw** installed and configured
+- **SQL Connector skill** (v2.0.0+, **required**) — the secure SQL Server bridge this skill depends on
+  - Install via: `clawhub install sql-connector` (recommended) or `pip install clawbot-sql-connector`
+- **SQL Memory skill** (recommended) — provides the `memory.Memories` table structure this skill reads from
+  - Install via: `clawhub install sql-memory`
+  - Without it, you'll need to create `memory.Memories` manually or populate via another method
+- **SQL Server** (on-prem, cloud Azure SQL, site4now, etc.) — accessible from your network
+- **Python** 3.10+
 - `.env` file with database credentials (see Configuration)
+
+**Note:** `memory-core` is OpenClaw's native dreaming system (built-in to OpenClaw). This skill wraps it — no separate install needed.
 
 ---
 
 ## Quick Start
+
+### Option 1: Install via ClawHub (recommended)
+
+```bash
+# Install this skill and its dependencies
+clawhub install sql-dreamer
+clawhub install sql-connector   # required — SQL Server bridge
+clawhub install sql-memory       # recommended — SQL-backed memory tables
+```
+
+### Option 2: Clone from GitHub
 
 ```bash
 # 1. Clone the repo
 git clone https://github.com/High-Falootin/openclaw-SQL-dreamer.git
 cd openclaw-SQL-dreamer
 
-# 2. Install dependencies
-# Note: pyodbc and PyYAML ship with OpenClaw's default environment.
-# If you're running inside OpenClaw, skip this step — they're already installed.
-# For standalone / non-OpenClaw installs:
+# 2. Install dependencies (skip if running inside OpenClaw — already installed)
 pip install -r requirements.txt
 
 # 3. Copy and fill in config
@@ -270,6 +284,25 @@ pytest tests/ -v  # All 81 tests (71 unit + 10 integration)
 
 ---
 
+## Publishing & Versions
+
+**Published to:** [clawhub.ai](https://clawhub.ai/skills/sql-dreamer) as `sql-dreamer`
+
+**Install:** `clawhub install sql-dreamer`
+
+**Current version:** 0.1.0
+
+**Version policy:** Stable releases only. We run this in production nightly and publish after thorough validation.
+
+**Compatibility:**
+- Python 3.10+
+- OpenClaw (memory-core dreaming enabled)
+- SQL Server 2019+ (including Azure SQL)
+- Requires: `sql-connector` skill v2.0.0+
+- Recommends: `sql-memory` skill for `memory.Memories` table
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
@@ -279,4 +312,6 @@ MIT — see [LICENSE](LICENSE)
 ## Related
 
 - [OpenClaw](https://openclaw.ai) — the AI assistant platform this skill extends
-- [ClawHub](https://clawhub.ai) — the OpenClaw skill registry where this skill will be published
+- [ClawHub](https://clawhub.ai) — the OpenClaw skill registry
+- [sql-connector](https://clawhub.ai/skills/sql-connector) — **required** — sealed SQL Server bridge (`clawhub install sql-connector`)
+- [sql-memory](https://clawhub.ai/skills/sql-memory) — **recommended** — SQL-backed memory tables (`clawhub install sql-memory`)
