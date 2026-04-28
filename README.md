@@ -201,15 +201,72 @@ Promotes high-scoring short-term memories to durable (MEMORY.md / long-term). Us
 
 ---
 
+## Testing
+
+### Unit Tests (71 tests)
+
+Test individual components in isolation:
+
+```bash
+pytest tests/test_sql_connector.py
+pytest tests/test_pre_dream_sql_feed.py
+pytest tests/test_post_dream_archiver.py
+pytest tests/test_phase_signal_reconciler.py
+pytest tests/test_light_sleep_synthesizer.py
+```
+
+**Or run all unit tests:**
+
+```bash
+pytest tests/ -v
+```
+
+### Integration Tests (10 tests) — NEW in HFTC-35
+
+Test the complete pipeline from empty state:
+
+```bash
+pytest tests/test_integration_pipeline.py -v
+```
+
+What these tests verify:
+
+1. **Empty-state initialization** — skill can start from zero (no files, no DB state)
+2. **Memory file creation** — pre_dream_sql_feed.py correctly creates memory/YYYY-MM-DD.md
+3. **Full pipeline** — complete workflow: pre-feed → native dreamer → post-archiver
+4. **Dream output validation** — dream files have correct structure (light/REM/deep phases)
+5. **Noise filtering** — low-importance items excluded, high-importance preserved
+6. **Confluence compatibility** — outputs ready for wiki publishing
+
+These tests use a **mock dreamer** (tests/mock_dreamer.py) that simulates OpenClaw's native dreaming without requiring the actual dreamer to run. This allows us to test the full pipeline deterministically.
+
+### Running All Tests
+
+```bash
+pytest tests/ -v  # All 81 tests (71 unit + 10 integration)
+```
+
+**Expected output:** 81 passed, 8 skipped (skipped tests require live DB connection)
+
+### Test Coverage
+
+- **Phase 1 (Scripts):** SQL connector, pre-dream feed, post-dream archiver, phase signal reconciler
+- **Phase 2 (Synthesis):** Light sleep scoring, theme extraction, deep sleep promotion
+- **Phase 3 (Integration):** Full pipeline from empty state, empty-state initialization, noise filtering, wiki compatibility
+
+---
+
 ## Contributing
 
 1. Fork the repo
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make changes with tests
-4. Run `pytest tests/`
+4. Run `pytest tests/` — all tests must pass
 5. Open a PR against `development` branch
 
 **Never commit secrets, credentials, or personal data.** This is a public repository.
+
+
 
 ---
 
