@@ -1,0 +1,20 @@
+[run]
+source =
+    src
+    scripts
+    sql
+
+omit =
+    # Requires live Confluence API — not testable in CI
+    scripts/confluence_dream_publisher.py
+    # DB-dependent integration tests are skipped in CI (need live SQL Server)
+    scripts/light_sleep_synthesizer.py
+    # DDL runner — requires live DB to execute schema migrations
+    sql/migrate.py
+    # Test infrastructure
+    tests/*
+    */__pycache__/*
+
+[report]
+show_missing = True
+skip_covered = False
