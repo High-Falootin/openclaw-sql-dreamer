@@ -1,32 +1,61 @@
 {
-  "id": "openclaw-sql-dreamer",
+  "id": "sql-dreamer",
   "name": "OpenClaw SQL Dreamer",
   "version": "0.1.0",
   "description": "SQL-backed memory corpus feeder and dream output archiver for OpenClaw. Replaces file-based memory ingestion with curated SQL queries, archives dream phase outputs (light/REM/deep) to SQL, and keeps the filesystem lean.",
   "author": "Oblio Falootin <oblio.falootin@gmail.com>",
   "license": "MIT",
-  "keywords": ["openclaw", "memory", "sql", "dreaming", "sql-server", "archive", "corpus"],
+  "keywords": [
+    "openclaw",
+    "memory",
+    "sql",
+    "dreaming",
+    "sql-server",
+    "archive",
+    "corpus"
+  ],
   "homepage": "https://github.com/High-Falootin/openclaw-SQL-dreamer",
   "repository": {
     "type": "git",
     "url": "https://github.com/High-Falootin/openclaw-SQL-dreamer.git"
   },
-  "skills": ["./skills"],
+  "skills": [
+    "./skills"
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["sql", "corpus", "dreaming"],
+    "required": [
+      "sql",
+      "corpus",
+      "dreaming"
+    ],
     "properties": {
       "sql": {
         "type": "object",
         "description": "SQL Server connection settings",
         "additionalProperties": false,
         "properties": {
-          "server": { "type": "string", "description": "SQL Server hostname or IP" },
-          "database": { "type": "string", "description": "Database name" },
-          "username": { "type": "string", "description": "SQL auth username" },
-          "password": { "type": "string", "description": "SQL auth password — prefer env SQL_PASSWORD" },
-          "connection_string": { "type": "string", "description": "Full ODBC connection string (overrides server/database/username/password)" }
+          "server": {
+            "type": "string",
+            "description": "SQL Server hostname or IP"
+          },
+          "database": {
+            "type": "string",
+            "description": "Database name"
+          },
+          "username": {
+            "type": "string",
+            "description": "SQL auth username"
+          },
+          "password": {
+            "type": "string",
+            "description": "SQL auth password \u2014 prefer env SQL_PASSWORD"
+          },
+          "connection_string": {
+            "type": "string",
+            "description": "Full ODBC connection string (overrides server/database/username/password)"
+          }
         }
       },
       "corpus": {
@@ -62,9 +91,33 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "light": { "type": "object", "properties": { "enabled": { "type": "boolean", "default": true } } },
-              "rem":   { "type": "object", "properties": { "enabled": { "type": "boolean", "default": true } } },
-              "deep":  { "type": "object", "properties": { "enabled": { "type": "boolean", "default": true } } }
+              "light": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              },
+              "rem": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              },
+              "deep": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              }
             }
           },
           "archive_after_days": {
@@ -80,12 +133,28 @@
         "description": "Optional Confluence publishing (disabled by default)",
         "additionalProperties": false,
         "properties": {
-          "enabled": { "type": "boolean", "default": false },
-          "domain":  { "type": "string", "description": "e.g. yourorg.atlassian.net" },
-          "email":   { "type": "string" },
-          "api_token": { "type": "string", "description": "Prefer env CONFLUENCE_API_TOKEN" },
-          "space_key": { "type": "string" },
-          "parent_page_id": { "type": "string", "description": "Confluence page ID for Memory Palace parent" }
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "domain": {
+            "type": "string",
+            "description": "e.g. yourorg.atlassian.net"
+          },
+          "email": {
+            "type": "string"
+          },
+          "api_token": {
+            "type": "string",
+            "description": "Prefer env CONFLUENCE_API_TOKEN"
+          },
+          "space_key": {
+            "type": "string"
+          },
+          "parent_page_id": {
+            "type": "string",
+            "description": "Confluence page ID for Memory Palace parent"
+          }
         }
       }
     }
