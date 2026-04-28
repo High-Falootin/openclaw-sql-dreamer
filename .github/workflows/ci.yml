@@ -1,5 +1,11 @@
 name: CI — Tests and Secret Scan
 
+# BRANCH FLOW POLICY: One-way only
+# development → main → publish (unidirectional)
+# - publish is auto-synced from main after tests pass
+# - Publish must NEVER have its own commits
+# - All feature work on development only
+
 on:
   push:
     branches: [development]
